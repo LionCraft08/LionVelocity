@@ -1,0 +1,11 @@
+{
+  "serverPingDelay": 10,
+  "networkName": "\u003cgradient:#0066FF:#00FFFF\u003eLionSystems Servernetzwerk",
+  "motds": [
+    "\u003cgradient:#FF00FF:#FFFF00\u003eHerzlich Willkommen!",
+    "\u003cgradient:#FF00FF:#FFFF00\u003eA LionCraft Server",
+    "\u003cgradient:#FF00FF:#FFFF00\u003eLionCraft Network"
+  ],
+  "TCPServerPort": 25689,
+  "AliveChecks": 30000
+}
