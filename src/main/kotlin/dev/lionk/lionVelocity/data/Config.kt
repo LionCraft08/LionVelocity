@@ -4,6 +4,9 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import dev.lionk.lionVelocity.LionVelocity
+import org.spongepowered.configurate.objectmapping.ObjectMapper
+import org.spongepowered.configurate.yaml.YamlConfigurationLoader
+import org.yaml.snakeyaml.Yaml
 import java.nio.file.Files
 
 object Config {

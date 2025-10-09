@@ -7,5 +7,8 @@
     "\u003cgradient:#FF00FF:#FFFF00\u003eLionCraft Network"
   ],
   "TCPServerPort": 25689,
-  "AliveChecks": 30000
+  "AliveChecks": 30000,
+  "banMessage": "<red>Du bist auf diesem Servernetzwerk gebannt.",
+  "whitelistMessage": "<gradient:#FF6600:#FFFF00>Dieses Servernetzwerk ist nicht öffentlich zugänglich.",
+  "allowUnknownServerConnections": true
 }

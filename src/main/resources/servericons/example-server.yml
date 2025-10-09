@@ -1,0 +1,9 @@
+DataVersion: 4440
+id: minecraft:stone
+count: 1
+components:
+  minecraft:lore: '[{color:"red",text:"Hallo Welt"},{extra:[{color:"#FF0000",text:"k"},{color:"#FF8B00",text:"u"},{color:"#E7FF00",text:"r"},{color:"#5CFF00",text:"z"},{color:"#00FF2E",text:"e"},{color:"#00FFB9",text:"r"},{color:"#00B9FF",text:""},{color:"#002EFF",text:"t"},{color:"#5C00FF",text:"e"},{color:"#E700FF",text:"x"},{color:"#FF008B",text:"t"}],text:""}]'
+  minecraft:enchantment_glint_override: 1b
+  minecraft:tooltip_display: '{hide_tooltip:1b}'
+  minecraft:custom_name: '{color:"blue",text:"Name dieses Gegenstandes"}'
+schema_version: 1

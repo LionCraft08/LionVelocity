@@ -10,20 +10,27 @@ import java.util.*
 
 class PlayerData(val uuid: UUID) {
     var name: String? = null
-        private set
+        set(value) {
+            if (value != null) PlayerDataManager.playerMapping.put(value, uuid)
+        }
     var isOP: Boolean
-    var locale: Locale? = null
     var data: HashMap<String, JsonElement> = HashMap()
+    var lastOnline: Long = 0
+
+    var currentServer: String? = null
+        get() = field
+        set(value) {
+            field = value
+
+        }
 
     init {
         val p: Player? = LionVelocity.instance.server.getPlayer(uuid).orElse(null)
 
         if (p != null) {
+            lastOnline = System.currentTimeMillis()
             name = p.username
-            data["ClientBrand"] = JsonPrimitive(p.clientBrand)
-            locale = p.effectiveLocale
-        } else {
-            locale = null
+            if (p.clientBrand != null) data["ClientBrand"] = JsonPrimitive(p.clientBrand)
         }
 
         isOP = false

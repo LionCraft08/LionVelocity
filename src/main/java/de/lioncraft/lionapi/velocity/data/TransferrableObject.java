@@ -34,4 +34,13 @@ public class TransferrableObject {
         data.put(key, value);
         return this;
     }
+    public String getString(String key){
+        return data.get(key);
+    }
+    public int getInt(String key){
+        return Integer.parseInt(getString(key));
+    }
+    public boolean getBool(String key){
+        return Boolean.parseBoolean(getString(key));
+    }
 }

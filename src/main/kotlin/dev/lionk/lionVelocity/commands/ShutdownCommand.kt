@@ -6,6 +6,7 @@ import com.velocitypowered.api.proxy.Player
 import de.lioncraft.lionapi.velocity.data.TransferrableObject
 import dev.lionk.lionVelocity.LionVelocity
 import dev.lionk.lionVelocity.backend.BackendServerManager
+import dev.lionk.lionVelocity.messageHandling.MessageSender
 import dev.lionk.lionVelocity.playerManagement.PlayerDataManager
 import net.kyori.adventure.text.minimessage.MiniMessage
 
@@ -15,11 +16,10 @@ class ShutdownCommand : SimpleCommand {
         val source = if (cmdsource is Player) cmdsource.uniqueId.toString()
             else "console"
         LionVelocity.instance.server.allPlayers.forEach { player ->
-            player.disconnect(
+            MessageSender.sendKickMessage(player,
                 MiniMessage.miniMessage().deserialize(
                     "<gradient:#FF8C00:#AA00AA>This Server Network is shutting down..." +
-                            "<reset><br><br><white>Please try again later<br><br><br><br><br>" +
-                            "<gradient:#FF00AA:#00AAFF>Powered by LionSystems"
+                            "<reset><br><br><white>Please try again later"
                 )
             )
         }

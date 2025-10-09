@@ -3,8 +3,13 @@ package dev.lionk.lionVelocity.commands
 import com.velocitypowered.api.command.SimpleCommand
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.server.RegisteredServer
+import de.lioncraft.lionapi.messageHandling.lionchat.LionChat
 import de.lioncraft.lionapi.messages.DM
 import dev.lionk.lionVelocity.LionVelocity
+import dev.lionk.lionVelocity.listeners.PlayerPMHandler
+import dev.lionk.lionVelocity.playerManagement.saveQueueReconnect
+import dev.lionk.lionVelocity.utils.toComponent
+import kotlin.time.Duration
 
 class LobbyCommand : SimpleCommand {
     override fun execute(invocation: SimpleCommand.Invocation) {
@@ -20,11 +25,12 @@ class LobbyCommand : SimpleCommand {
             }
             val server: java.util.Optional<RegisteredServer?> =  LionVelocity.instance.server.getServer(lobby)
             if (server.isPresent) {
-                if (p.currentServer.get().server != server.get()) {
-                    p.createConnectionRequest(server.get()).connectWithIndication()
-                } else p.sendMessage(DM.info("You are already connected to this Server"))
-            } else p.sendMessage(DM.info("This Server does not exist"))
-        } else invocation.source().sendMessage(DM.info("You are not a Player"))
+                p.saveQueueReconnect(server.get())
+            } else {
+                LionVelocity.instance.logger.error("Server wasn't found")
+                LionChat.sendMessageOnChannel("velocity", "<#FF7700>Couldn't find this Server!".toComponent(), p)
+            }
+        } else LionChat.sendMessageOnChannel("velocity", "<#FF7700>You are not a Player".toComponent(), invocation.source())
     }
 
     override fun suggest(invocation: SimpleCommand.Invocation?): kotlin.collections.MutableList<kotlin.String?>? {

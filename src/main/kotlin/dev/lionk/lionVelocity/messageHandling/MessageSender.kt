@@ -7,6 +7,7 @@ import de.lioncraft.lionapi.velocity.data.TransferrableObject
 import dev.lionk.lionVelocity.LionVelocity
 import dev.lionk.lionVelocity.utils.GUIElementRenderer.getFooter
 import dev.lionk.lionVelocity.utils.GUIElementRenderer.getHeader
+import dev.lionk.lionVelocity.utils.toComponent
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.json.JSONComponentSerializer
@@ -19,6 +20,13 @@ object MessageSender {
 
     fun sendFooter(p: Player) {
         p.sendPlayerListFooter(getFooter(p.getCurrentServer().get().getServer().getServerInfo().getName()))
+    }
+
+    private val suffix = ("<reset><br><br><br><br><br>" +
+            "<gradient:#FF00AA:#00AAFF>______________________<br><reset>"+
+            "<gradient:#FF00AA:#00AAFF>Powered by LionSystems").toComponent()
+    fun sendKickMessage(p: Player, msg: Component){
+        p.disconnect(msg.append(suffix))
     }
 
     fun sendPlayerMSG(`object`: TransferrableObject){

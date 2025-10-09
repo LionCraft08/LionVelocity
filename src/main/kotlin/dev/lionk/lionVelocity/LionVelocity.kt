@@ -10,13 +10,19 @@ import com.velocitypowered.api.proxy.ProxyServer
 import de.lioncraft.lionapi.messageHandling.lionchat.ChannelConfiguration
 import de.lioncraft.lionapi.messageHandling.lionchat.LionChat
 import de.lioncraft.lionapi.messages.ColorGradient
+import dev.lionk.lionVelocity.backend.BackendServerManager
+import dev.lionk.lionVelocity.backend.PingedServerStorage
 import dev.lionk.lionVelocity.backend.TCPConnectionWaiter
 import dev.lionk.lionVelocity.commands.LobbyCommand
 import dev.lionk.lionVelocity.commands.ShutdownCommand
+import dev.lionk.lionVelocity.commands.VelocityCommand
 import dev.lionk.lionVelocity.data.Config
+import dev.lionk.lionVelocity.data.ItemStackManager
 import dev.lionk.lionVelocity.listeners.MOTDListener
 import dev.lionk.lionVelocity.listeners.PlayerListeners
+import dev.lionk.lionVelocity.listeners.PlayerPMHandler
 import dev.lionk.lionVelocity.playerManagement.PlayerDataManager
+import dev.lionk.lionVelocity.playerManagement.WhitelistManagement
 import dev.lionk.lionVelocity.utils.GUIElementRenderer
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -51,6 +57,14 @@ class LionVelocity @Inject constructor(val  server: ProxyServer, val logger: Log
             "/playerdata.json",
             Paths.get(dataDirectory.toString(), "playerdata.json")
         )
+        saveResourceIfNotExists(
+            "/whitelist.json",
+            Paths.get(dataDirectory.toString(), "whitelist.json")
+        )
+        saveResourceIfNotExists(
+            "/servericons/example-server.yml",
+            Paths.get(dataDirectory.toString(), "servericons/example-server.yml")
+        )
 
         logger.info("Initialized LionVelocity Plugin ")
     }
@@ -62,22 +76,34 @@ class LionVelocity @Inject constructor(val  server: ProxyServer, val logger: Log
         Config.loadConfig()
 
         PlayerDataManager.init()
+        WhitelistManagement.loadData()
 
         server.eventManager.register(this, MOTDListener())
         server.eventManager.register(this, PlayerListeners())
+        server.eventManager.register(this, PlayerPMHandler)
 
+        server.channelRegistrar.register(PlayerPMHandler.IDENTIFIER)
 
         registerCommands()
 
         queueTimeUpdater()
 
         TCPConnectionWaiter.init()
+
+        ItemStackManager.load()
+
+        PingedServerStorage.scheduleServerPingInstance()
     }
 
     @Subscribe
     fun onShutdown(e: ProxyShutdownEvent?) {
+        saveData()
+    }
+
+    private fun saveData(){
         Config.saveConfig()
         PlayerDataManager.save()
+        WhitelistManagement.saveData()
     }
 
     private fun registerLionChatChannels() {
@@ -138,6 +164,9 @@ class LionVelocity @Inject constructor(val  server: ProxyServer, val logger: Log
         val cm = server.commandManager
         cm.register(cm.metaBuilder("lobby").aliases("l").plugin(this).build(), LobbyCommand())
         cm.register(cm.metaBuilder("shutdown").aliases("globalshutdown").plugin(this).build(), ShutdownCommand())
+        cm.register(
+            cm.metaBuilder("lionvelocity").aliases("lvc").plugin(this).build(), VelocityCommand.createBrigadierCommand()
+        )
     }
 
     private fun queueTimeUpdater(){
@@ -147,6 +176,10 @@ class LionVelocity @Inject constructor(val  server: ProxyServer, val logger: Log
             }
         }).repeat(Duration.ofMinutes(1))
             .delay((60 - Calendar.getInstance().get(Calendar.SECOND)).toLong(), TimeUnit.SECONDS).schedule()
+
+        server.scheduler.buildTask(this, Runnable{
+            saveData()
+        }).repeat(120, TimeUnit.SECONDS).schedule()
     }
 
     fun saveResourceIfNotExists(resource: String?, outputPath: Path): Boolean {
