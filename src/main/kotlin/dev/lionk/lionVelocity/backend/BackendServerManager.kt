@@ -17,6 +17,10 @@ object BackendServerManager {
         return getConnection(rs.serverInfo.name)
     }
 
+    fun removeConnection(name: String){
+        connections.remove(name)
+    }
+
     fun getConnections(): Collection<AbstractConnection> {
         return connections.values
     }

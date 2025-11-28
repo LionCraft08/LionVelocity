@@ -6,14 +6,20 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
 import com.velocitypowered.api.proxy.Player
 import dev.lionk.lionVelocity.LionVelocity
+import dev.lionk.lionVelocity.playerManagement.mojang.PlayerCache
 import java.util.*
 
 class PlayerData(val uuid: UUID) {
     var name: String? = null
-        set(value) {
-            if (value != null) PlayerDataManager.playerMapping.put(value, uuid)
+        get() {
+            return if (field != null) field
+            else LionVelocity.instance.server.getPlayer(uuid).orElse(null)?.username
         }
-    var isOP: Boolean
+    var isOP: Boolean = false
+        get() = field
+        set(value) {
+            field = value
+        }
     var data: HashMap<String, JsonElement> = HashMap()
     var lastOnline: Long = 0
 
@@ -31,6 +37,8 @@ class PlayerData(val uuid: UUID) {
             lastOnline = System.currentTimeMillis()
             name = p.username
             if (p.clientBrand != null) data["ClientBrand"] = JsonPrimitive(p.clientBrand)
+        }else{
+            name = PlayerCache.getName(uuid)
         }
 
         isOP = false

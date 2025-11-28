@@ -8,6 +8,7 @@ import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.InetAddress
 import java.net.Socket
+import java.net.SocketException
 import java.util.UUID
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -81,12 +82,12 @@ class TCPConnection (
                     if (receivedLine!!.startsWith("setupconnection") && !isSetUp){
                         val values = receivedLine.split(":")
                         setServer(values[1], values[2].toInt())
-                    }else onMessageReceive(receivedLine)
+                    } else onMessageReceive(receivedLine)
                 }
             } catch (e: IOException) {
                 if (isRunning) { // Only log if not a planned shutdown
                     LionVelocity.instance.logger
-                        .info("Connection lost with peer.", e)
+                        .warn("Connection lost with peer: {}", e.message)
                 }
             } finally {
                 shutdown()
@@ -114,6 +115,7 @@ class TCPConnection (
      */
     private fun shutdown() {
         this.isRunning = false
+        BackendServerManager.removeConnection(server?:"")
         try {
             if (out != null) out!!.close()
             if (`in` != null) `in`!!.close()

@@ -6,6 +6,7 @@ import de.lioncraft.lionapi.velocity.data.ServerState
 import de.lioncraft.lionapi.velocity.data.TransferrableObject
 import dev.lionk.lionVelocity.LionVelocity
 import dev.lionk.lionVelocity.data.ItemStackManager
+import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.json.JSONComponentSerializer
 import java.util.concurrent.TimeUnit
 import java.util.function.BiFunction
@@ -42,7 +43,7 @@ object PingedServerStorage {
         )) else updateServer(rs, ServerState(
         rs.serverInfo.name,
         true,
-            JSONComponentSerializer.json().serialize(serverPing.descriptionComponent),
+            JSONComponentSerializer.json().serialize(serverPing.descriptionComponent?: Component.text("")),
         serverPing.favicon.getOrNull()?.base64Url,
         ItemStackManager.items.get(rs.serverInfo.name),
         serverPing.players.getOrNull()?.max,

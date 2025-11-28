@@ -19,7 +19,6 @@ class PlayerListeners {
     @Subscribe
     fun onJoin(e: ServerPostConnectEvent) {
         val p: Player = e.getPlayer()
-        PlayerDataManager
         MessageSender.sendHeader(p)
         MessageSender.sendFooter(p)
         LionVelocity.instance.server.getScheduler().buildTask(LionVelocity.instance, Runnable({
@@ -33,12 +32,15 @@ class PlayerListeners {
         for (p in  LionVelocity.instance.server.allPlayers) {
             if (p !== e.player) MessageSender.sendFooter(p)
         }
-        PlayerDataManager.getPlayerData(e.player.uniqueId)!!.lastOnline = System.currentTimeMillis()
+        PlayerDataManager.getPlayerData(e.player.uniqueId).lastOnline = System.currentTimeMillis()
+        PlayerDataManager.getPlayerData(e.player.uniqueId).currentServer = null
     }
 
     @Subscribe
     fun onJoin(e: PostLoginEvent) {
-        PlayerDataManager.getPlayerData(e.getPlayer().getUniqueId())
+        LionVelocity.instance.server.scheduler.buildTask(LionVelocity.instance, Runnable {
+            PlayerDataManager.getPlayerData(e.getPlayer().getUniqueId())
+        }).schedule()
 
         LionVelocity.instance.server.scheduler.buildTask( LionVelocity.instance, Runnable({
             for (p in  LionVelocity.instance.server.allPlayers) {

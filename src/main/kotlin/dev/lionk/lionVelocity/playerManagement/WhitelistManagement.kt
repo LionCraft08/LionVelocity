@@ -29,6 +29,7 @@ object WhitelistManagement {
     }
     fun loadData(){
         whitelistStorage = Gson().fromJson(FileReader(file), WhitelistStorage::class.java)
+        if (whitelistStorage == null) whitelistStorage = WhitelistStorage()
         players = whitelistStorage.players.map { str -> UUID.fromString(str) } as ArrayList<UUID>
         banned = whitelistStorage.banned.mapKeys { UUID.fromString(it.key) } as HashMap<UUID, Long?>
         enabled = whitelistStorage.enabled
@@ -54,6 +55,9 @@ object WhitelistManagement {
         val playerObj = LionVelocity.instance.server.getPlayer(player)
         if (playerObj.isPresent)
             MessageSender.sendKickMessage(playerObj.get(), "<red>You are banned from this Server!".toComponent())
+    }
+    fun pardon(player: UUID){
+        banned.remove(player)
     }
 
     fun whitelist(uuid: UUID){

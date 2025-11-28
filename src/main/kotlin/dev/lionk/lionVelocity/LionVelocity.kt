@@ -81,7 +81,6 @@ class LionVelocity @Inject constructor(val  server: ProxyServer, val logger: Log
         server.eventManager.register(this, MOTDListener())
         server.eventManager.register(this, PlayerListeners())
         server.eventManager.register(this, PlayerPMHandler)
-
         server.channelRegistrar.register(PlayerPMHandler.IDENTIFIER)
 
         registerCommands()

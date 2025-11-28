@@ -8,6 +8,7 @@ import com.velocitypowered.api.proxy.server.RegisteredServer
 import de.lioncraft.lionapi.velocity.data.TransferrableObject
 import dev.lionk.lionVelocity.LionVelocity
 import dev.lionk.lionVelocity.backend.BackendServerManager
+import dev.lionk.lionVelocity.playerManagement.mojang.PlayerCache
 import java.io.*
 import java.util.*
 
@@ -18,8 +19,6 @@ object PlayerDataManager {
     val gson: Gson = Gson()
     
     var playerData: HashMap<UUID, PlayerData>? = null
-    var playerMapping = HashMap<String, UUID>()
-
 
     fun init() {
         try {
@@ -27,12 +26,6 @@ object PlayerDataManager {
                 TypeToken.getParameterized(HashMap::class.java, UUID::class.java, PlayerData::class.java).type
             playerData = gson.fromJson<HashMap<UUID, PlayerData>?>(FileReader(file), typeOfMap)
             if (playerData == null) playerData = HashMap()
-
-            playerData!!.forEach { (key, value) ->
-                if (value.name != null){
-                    playerMapping[value.name!!] = key
-                }
-            }
         } catch (e: FileNotFoundException) {
             throw RuntimeException(e)
         }
@@ -56,8 +49,6 @@ object PlayerDataManager {
 
     fun setPlayerData(uuid: UUID, playerData: PlayerData){
         PlayerDataManager.playerData!![uuid] = playerData
-        if (playerData.name != null)
-            playerMapping[playerData.name!!] = uuid
     }
 
     fun sendPlayerData(uuid: UUID){
