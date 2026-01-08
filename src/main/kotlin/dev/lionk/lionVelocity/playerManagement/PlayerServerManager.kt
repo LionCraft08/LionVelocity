@@ -20,11 +20,23 @@ object PlayerServerManager {
     }
 
     fun saveQueueReconnect(player: Player, rs: RegisteredServer){
+        if(!saveQueueReconnectSilent(player, rs)){
+            LionChat.sendMessageOnChannel(
+                "velocity",
+                "<#FF7700>You are already connected to this Server!".toComponent(),
+                player
+            )
+        }
+   }
+
+    fun saveQueueReconnectSilent(player: Player, rs: RegisteredServer):Boolean {
         if(rs != player.currentServer.getOrNull()?.server){
             if (Config.getValue("allowUnknownServerConnections").asBoolean || BackendServerManager.getConnection(rs) != null) {
                 player.queueReconnect(rs)
+                return true
             }
-        } else LionChat.sendMessageOnChannel("velocity", "<#FF7700>You are already connected to this Server!".toComponent(), player)
+        }
+        return false
     }
 
 }
@@ -35,4 +47,7 @@ fun Player.queueReconnect(server: RegisteredServer){
 
 fun Player.saveQueueReconnect(rs: RegisteredServer){
     PlayerServerManager.saveQueueReconnect(this, rs)
+}
+fun Player.saveQueueReconnectSilent(rs: RegisteredServer):Boolean{
+    return PlayerServerManager.saveQueueReconnectSilent(this, rs)
 }

@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "dev.lionk"
-version = "1.1.3"
+version = "1.1.5"
 
 repositories {
     mavenCentral()
@@ -32,6 +32,9 @@ tasks {
         // This is the only required configuration besides applying the plugin.
         // Your plugin's jar (or shadowJar if present) will be used automatically.
         velocityVersion("3.4.0-SNAPSHOT")
+    }
+    shadowJar {
+        archiveClassifier.set("")
     }
 }
 

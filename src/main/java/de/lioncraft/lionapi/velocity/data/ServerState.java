@@ -23,8 +23,9 @@ public class ServerState {
     private String stringItemStack;
     private Integer maxPlayers;
     private int currentPlayers;
+    private String jsonItemStack;
 
-    public ServerState(String name, boolean enabled, @Nullable String motd, @Nullable String base64Favicon, String stringItemStack, Integer maxPlayers, int currentPlayers) {
+    public ServerState(String name, boolean enabled, @Nullable String motd, @Nullable String base64Favicon, String stringItemStack, Integer maxPlayers, int currentPlayers, String jsonItemStack) {
         this.name = name;
         this.enabled = enabled;
         this.motd = motd;
@@ -32,6 +33,7 @@ public class ServerState {
         this.stringItemStack = stringItemStack;
         this.maxPlayers = maxPlayers;
         this.currentPlayers = currentPlayers;
+        this.jsonItemStack = jsonItemStack;
     }
 
     public boolean updateEnabled(boolean newValue){

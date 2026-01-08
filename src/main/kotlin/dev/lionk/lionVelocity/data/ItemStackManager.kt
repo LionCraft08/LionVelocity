@@ -13,6 +13,7 @@ import java.nio.file.Paths
 object ItemStackManager {
     private val file: Path = LionVelocity.instance.dataDirectory.resolve("servericons")
     val items = hashMapOf<String, String>()
+    val itemsJson = hashMapOf<String, String>()
     fun load(){
         loadFile(file.toFile())
     }
@@ -22,7 +23,9 @@ object ItemStackManager {
                 loadFile(fn)
             }
         } else {
-            items[file.nameWithoutExtension] = Files.readString(file.toPath(), StandardCharsets.UTF_8)
+            if (file.extension.equals("json", true)){
+                itemsJson[file.nameWithoutExtension] = Files.readString(file.toPath(), StandardCharsets.UTF_8)
+            }else items[file.nameWithoutExtension] = Files.readString(file.toPath(), StandardCharsets.UTF_8)
         }
     }
 

@@ -16,6 +16,7 @@ import dev.lionk.lionVelocity.backend.TCPConnectionWaiter
 import dev.lionk.lionVelocity.commands.LobbyCommand
 import dev.lionk.lionVelocity.commands.ShutdownCommand
 import dev.lionk.lionVelocity.commands.VelocityCommand
+import dev.lionk.lionVelocity.commands.players.PlayersCommand
 import dev.lionk.lionVelocity.data.Config
 import dev.lionk.lionVelocity.data.ItemStackManager
 import dev.lionk.lionVelocity.listeners.MOTDListener
@@ -64,6 +65,10 @@ class LionVelocity @Inject constructor(val  server: ProxyServer, val logger: Log
         saveResourceIfNotExists(
             "/servericons/example-server.yml",
             Paths.get(dataDirectory.toString(), "servericons/example-server.yml")
+        )
+        saveResourceIfNotExists(
+            "/servericons/example-server.json",
+            Paths.get(dataDirectory.toString(), "servericons/example-server.json")
         )
 
         logger.info("Initialized LionVelocity Plugin ")
@@ -165,6 +170,11 @@ class LionVelocity @Inject constructor(val  server: ProxyServer, val logger: Log
         cm.register(cm.metaBuilder("shutdown").aliases("globalshutdown").plugin(this).build(), ShutdownCommand())
         cm.register(
             cm.metaBuilder("lionvelocity").aliases("lvc").plugin(this).build(), VelocityCommand.createBrigadierCommand()
+        )
+        cm.register(cm.metaBuilder("players")
+            .aliases("velocityplayers")
+            .plugin(this)
+            .build(), PlayersCommand.getCommand()
         )
     }
 

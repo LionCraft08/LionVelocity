@@ -35,7 +35,7 @@ class ShutdownCommand : SimpleCommand {
     override fun hasPermission(invocation: SimpleCommand.Invocation): Boolean {
         val source = invocation.source()
         if (source is Player){
-            return PlayerDataManager.getPlayerData(source.uniqueId)!!.isOP
+            return PlayerDataManager.getPlayerData(source.uniqueId).isOP
         }
 
         return source is ConsoleCommandSource

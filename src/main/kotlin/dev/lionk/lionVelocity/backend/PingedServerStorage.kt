@@ -39,15 +39,17 @@ object PingedServerStorage {
             null,
             ItemStackManager.items.get(rs.serverInfo.name),
             null,
-            rs.playersConnected.size
+            rs.playersConnected.size,
+            ItemStackManager.itemsJson[rs.serverInfo.name]
         )) else updateServer(rs, ServerState(
         rs.serverInfo.name,
         true,
-            JSONComponentSerializer.json().serialize(serverPing.descriptionComponent?: Component.text("")),
+        JSONComponentSerializer.json().serialize(serverPing.descriptionComponent?: Component.text("")),
         serverPing.favicon.getOrNull()?.base64Url,
         ItemStackManager.items.get(rs.serverInfo.name),
         serverPing.players.getOrNull()?.max,
-        rs.playersConnected.size
+        rs.playersConnected.size,
+        ItemStackManager.itemsJson[rs.serverInfo.name]
         ))
     }
 
