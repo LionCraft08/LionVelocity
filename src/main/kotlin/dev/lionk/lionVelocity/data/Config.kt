@@ -1,26 +1,24 @@
 package dev.lionk.lionVelocity.data
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import dev.lionk.lionVelocity.LionVelocity
-import org.spongepowered.configurate.objectmapping.ObjectMapper
-import org.spongepowered.configurate.yaml.YamlConfigurationLoader
-import org.yaml.snakeyaml.Yaml
 import java.nio.file.Files
 
 object Config {
-    val gson: Gson = Gson()
+    val gson: Gson = GsonBuilder().setPrettyPrinting().create()
     private lateinit var jo: JsonObject
-    fun getJO(): JsonObject = jo;
+    fun getJO(): JsonObject = jo
 
-    fun getValue(key: String): JsonElement{
+    fun getValue(key: String): JsonElement? {
         return jo.get(key)
     }
 
     fun loadConfig(){
         val string = String(Files.readAllBytes(LionVelocity.instance.dataDirectory.resolve("config.json")))
-        jo = gson.fromJson<JsonObject>(string, JsonObject::class.java)
+        jo = gson.fromJson(string, JsonObject::class.java)
     }
 
     fun saveConfig(){

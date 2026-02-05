@@ -31,7 +31,7 @@ object PlayerServerManager {
 
     fun saveQueueReconnectSilent(player: Player, rs: RegisteredServer):Boolean {
         if(rs != player.currentServer.getOrNull()?.server){
-            if (Config.getValue("allowUnknownServerConnections").asBoolean || BackendServerManager.getConnection(rs) != null) {
+            if (Config.getValue("allowUnknownServerConnections")!!.asBoolean || BackendServerManager.getConnection(rs) != null) {
                 player.queueReconnect(rs)
                 return true
             }

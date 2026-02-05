@@ -14,7 +14,7 @@ object TCPConnectionWaiter {
     private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
     fun init(){
         executorService.submit {
-            serverSocket = ServerSocket(Config.getValue("TCPServerPort").asInt)
+            serverSocket = ServerSocket(Config.getValue("TCPServerPort")!!.asInt)
             serverSocket!!.setSoTimeout(0)
             scheduleNewWaiter()
         }

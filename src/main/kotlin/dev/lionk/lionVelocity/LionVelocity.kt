@@ -1,4 +1,4 @@
-package dev.lionk.lionVelocity;
+package dev.lionk.lionVelocity
 
 import com.google.inject.Inject
 import com.velocitypowered.api.event.Subscribe
@@ -10,7 +10,6 @@ import com.velocitypowered.api.proxy.ProxyServer
 import de.lioncraft.lionapi.messageHandling.lionchat.ChannelConfiguration
 import de.lioncraft.lionapi.messageHandling.lionchat.LionChat
 import de.lioncraft.lionapi.messages.ColorGradient
-import dev.lionk.lionVelocity.backend.BackendServerManager
 import dev.lionk.lionVelocity.backend.PingedServerStorage
 import dev.lionk.lionVelocity.backend.TCPConnectionWaiter
 import dev.lionk.lionVelocity.commands.LobbyCommand
@@ -22,8 +21,10 @@ import dev.lionk.lionVelocity.data.ItemStackManager
 import dev.lionk.lionVelocity.listeners.MOTDListener
 import dev.lionk.lionVelocity.listeners.PlayerListeners
 import dev.lionk.lionVelocity.listeners.PlayerPMHandler
+import dev.lionk.lionVelocity.playerManagement.PlayerConfigCache
 import dev.lionk.lionVelocity.playerManagement.PlayerDataManager
 import dev.lionk.lionVelocity.playerManagement.WhitelistManagement
+import dev.lionk.lionVelocity.sql.SQLManager
 import dev.lionk.lionVelocity.utils.GUIElementRenderer
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -45,7 +46,7 @@ import java.util.concurrent.TimeUnit
     url = "lionk.dev",
     authors = ["LionCraft"]
 )
-class LionVelocity @Inject constructor(val  server: ProxyServer, val logger: Logger, @param:DataDirectory val dataDirectory: java.nio.file.Path) {
+class LionVelocity @Inject constructor(val  server: ProxyServer, val logger: Logger, @param:DataDirectory val dataDirectory: Path) {
     init {
         instance = this
         dataDirectory.toFile().mkdirs()
@@ -53,10 +54,6 @@ class LionVelocity @Inject constructor(val  server: ProxyServer, val logger: Log
         saveResourceIfNotExists(
             "/config.json",
             Paths.get(dataDirectory.toString(), "config.json")
-        )
-        saveResourceIfNotExists(
-            "/playerdata.json",
-            Paths.get(dataDirectory.toString(), "playerdata.json")
         )
         saveResourceIfNotExists(
             "/whitelist.json",
@@ -76,9 +73,21 @@ class LionVelocity @Inject constructor(val  server: ProxyServer, val logger: Log
 
 
     @Subscribe
-    fun onProxyInitialization(event: ProxyInitializeEvent) {
+    fun onProxyInitialization(e: ProxyInitializeEvent) {
         registerLionChatChannels()
         Config.loadConfig()
+
+        logger.info("Trying to connect to the Database")
+        SQLManager.instance.connect()
+        SQLManager.instance.executeUpdate("CREATE TABLE IF NOT EXISTS player_configs (\n" +
+                "    uuid VARCHAR(36) PRIMARY KEY,\n" +
+                "    timestamp BIGINT,\n" +
+                "    is_operator BOOLEAN,\n" +
+                "    last_online BIGINT,\n" +
+                "    auto_server_switch BOOLEAN,\n" +
+                "    permissions TEXT, -- Stored as JSON array\n" +
+                "    extra_data TEXT    -- Stored as JSON object\n" +
+                ") ENGINE=InnoDB;")
 
         PlayerDataManager.init()
         WhitelistManagement.loadData()
@@ -99,15 +108,23 @@ class LionVelocity @Inject constructor(val  server: ProxyServer, val logger: Log
         PingedServerStorage.scheduleServerPingInstance()
     }
 
+    fun async(sf: Function0<Unit>){
+        instance.server.scheduler.buildTask(instance, Runnable{
+            sf.invoke()
+        }).schedule()
+    }
+
     @Subscribe
     fun onShutdown(e: ProxyShutdownEvent?) {
         saveData()
+        TimeUnit.SECONDS.sleep(1)
+        SQLManager.instance.disconnect()
     }
 
     private fun saveData(){
         Config.saveConfig()
-        PlayerDataManager.save()
         WhitelistManagement.saveData()
+        PlayerConfigCache.shutdownCache()
     }
 
     private fun registerLionChatChannels() {
@@ -179,9 +196,9 @@ class LionVelocity @Inject constructor(val  server: ProxyServer, val logger: Log
     }
 
     private fun queueTimeUpdater(){
-        server.getScheduler().buildTask(this, Runnable {
-            for (p in server.getAllPlayers()) {
-                p.sendPlayerListHeader(GUIElementRenderer.getHeader(TimeZone.getDefault().getID()))
+        server.scheduler.buildTask(this, Runnable {
+            for (p in server.allPlayers) {
+                p.sendPlayerListHeader(GUIElementRenderer.getHeader(TimeZone.getDefault().id))
             }
         }).repeat(Duration.ofMinutes(1))
             .delay((60 - Calendar.getInstance().get(Calendar.SECOND)).toLong(), TimeUnit.SECONDS).schedule()
@@ -192,7 +209,7 @@ class LionVelocity @Inject constructor(val  server: ProxyServer, val logger: Log
     }
 
     fun saveResourceIfNotExists(resource: String?, outputPath: Path): Boolean {
-        if (resource == null || resource.isEmpty() || !resource.startsWith("/")) {
+        if (resource.isNullOrEmpty() || !resource.startsWith("/")) {
             System.err.println("Error: Resource path must be a non-empty absolute path starting with '/' (e.g., /com/example/file.txt).")
             return false
         }
@@ -210,7 +227,7 @@ class LionVelocity @Inject constructor(val  server: ProxyServer, val logger: Log
                 if (resourceStream == null) {
                     return false
                 }
-                val parentDir = outputPath.getParent()
+                val parentDir = outputPath.parent
                 if (parentDir != null) {
                     if (!Files.exists(parentDir)) {
                         Files.createDirectories(parentDir)

@@ -1,12 +1,8 @@
 package dev.lionk.lionVelocity.commands.players
 
 import com.mojang.brigadier.Command
-import com.mojang.brigadier.arguments.ArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
-import com.mojang.brigadier.builder.ArgumentBuilder
-import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
-import com.mojang.brigadier.tree.CommandNode
 import com.mojang.brigadier.tree.LiteralCommandNode
 import com.velocitypowered.api.command.BrigadierCommand
 import com.velocitypowered.api.command.CommandSource
@@ -17,13 +13,12 @@ import dev.lionk.lionVelocity.LionVelocity
 import dev.lionk.lionVelocity.playerManagement.saveQueueReconnectSilent
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor
-import kotlin.jvm.optionals.getOrElse
 import kotlin.jvm.optionals.getOrNull
 
 object SendCommand {
     val command: LiteralCommandNode<CommandSource?> = BrigadierCommand.literalArgumentBuilder("send")
         .then(BrigadierCommand.requiredArgumentBuilder<String>("players", StringArgumentType.string())
-            .suggests { context, builder ->
+            .suggests { _, builder ->
                 if(LionVelocity.instance.server.allPlayers.size < 50) {
                     LionVelocity.instance.server.allPlayers.forEach {
                         builder.suggest(it.username)
@@ -46,7 +41,7 @@ object SendCommand {
 
                         var count = 0
                         for (player in players) {
-                            if(player.saveQueueReconnectSilent(server.server))count++
+                            if(player.saveQueueReconnectSilent(server.server)) count++
                         }
 
                         LionChat.sendMessageOnChannel(
@@ -71,7 +66,7 @@ object SendCommand {
                 return@executes Command.SINGLE_SUCCESS
             }
             .then(BrigadierCommand.requiredArgumentBuilder<String>("server", StringArgumentType.string())
-                .suggests { context, builder ->
+                .suggests { _, builder ->
                     LionVelocity.instance.server.allServers.forEach {
                         builder.suggest(it.serverInfo.name)
                     }
@@ -150,12 +145,6 @@ object SendCommand {
 
     fun getCommandNode(): LiteralCommandNode<CommandSource?> {
         return command
-    }
-
-    fun sendPlayers(players: List<Player>, target: RegisteredServer) {
-        for (player in players) {
-
-        }
     }
 
     fun getPlayer(name: String): Player?{

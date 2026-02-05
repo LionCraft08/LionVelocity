@@ -1,6 +1,5 @@
 package dev.lionk.lionVelocity.playerManagement
 
-import com.google.common.base.Strings
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
@@ -9,6 +8,7 @@ import dev.lionk.lionVelocity.LionVelocity
 import dev.lionk.lionVelocity.playerManagement.mojang.PlayerCache
 import java.util.*
 
+@Deprecated("Only still exists to allow data conversion")
 class PlayerData(val uuid: UUID) {
     var name: String? = null
         get() {

@@ -32,7 +32,7 @@ object MessageSender {
     fun sendPlayerMSG(`object`: TransferrableObject){
         val source = JSONComponentSerializer.json().deserialize(`object`.getData().get("source")!!)
         val message = JSONComponentSerializer.json().deserialize(`object`.getData().get("message")!!)
-        val target = UUID.fromString(`object`.getData().get("target"))
+        val target = `object`.data["target"]
         val srcPlayerID = UUID.fromString(`object`.getData().get("sourcePlayer"))
         val p: Optional<Player?> = LionVelocity.instance.server.getPlayer(target)
         val srcPlayer: Optional<Player?> = LionVelocity.instance.server.getPlayer(srcPlayerID)

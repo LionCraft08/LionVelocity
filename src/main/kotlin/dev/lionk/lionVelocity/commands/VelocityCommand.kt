@@ -7,6 +7,7 @@ import com.velocitypowered.api.proxy.ConsoleCommandSource
 import com.velocitypowered.api.proxy.Player
 import de.lioncraft.lionapi.messageHandling.lionchat.LionChat
 import dev.lionk.lionVelocity.LionVelocity
+import dev.lionk.lionVelocity.playerManagement.PlayerConfigCache
 import dev.lionk.lionVelocity.playerManagement.PlayerDataManager
 import dev.lionk.lionVelocity.playerManagement.WhitelistManagement
 import dev.lionk.lionVelocity.playerManagement.mojang.PlayerCache
@@ -22,7 +23,7 @@ import kotlin.jvm.optionals.getOrNull
 object VelocityCommand {
     fun createBrigadierCommand(): BrigadierCommand{
         val node = BrigadierCommand.literalArgumentBuilder("lionvelocity")
-            .requires { if (it is ConsoleCommandSource) true else PlayerDataManager.getPlayerData((it as Player).uniqueId)?.isOP
+            .requires { if (it is ConsoleCommandSource) true else PlayerConfigCache.getCachedPlayerConfig((it as Player).uniqueId)?.isOperator
                 ?: false }
             .executes {
                 sendVelocityInformation(it.source)
@@ -53,14 +54,16 @@ object VelocityCommand {
                             val player = (context.getArgument<String>("player", String::class.java))
                             val playerID = getPlayer(player)
                             if (playerID != null) {
-                                if(PlayerDataManager.getPlayerData(playerID).isOP){
+                                val cachedPlayer = PlayerConfigCache.getOrCreatePlayerConfig((playerID)).get()
+                                if(cachedPlayer.isOperator) {
                                     LionChat.sendMessageOnChannel(
                                         "velocity",
                                         "<red>$player is already a global operator".toComponent(),
                                         context.source
                                     )
                                 } else {
-                                    PlayerDataManager.getPlayerData(playerID).isOP = true
+                                    cachedPlayer.isOperator = true
+                                    PlayerDataManager.sendPlayerDataUpdate(cachedPlayer, "isOperator", true)
                                     LionChat.sendMessageOnChannel(
                                         "velocity",
                                         "<green>Made $player a global Operator".toComponent(),
@@ -77,10 +80,6 @@ object VelocityCommand {
             .then(BrigadierCommand.literalArgumentBuilder("deop")
                 .then(BrigadierCommand.requiredArgumentBuilder("player", StringArgumentType.word())
                     .suggests { context, builder ->
-                        PlayerDataManager.playerData!!.values.forEach { player ->
-                            if (player.isOP)
-                                builder.suggest(player.name)
-                        }
                         return@suggests builder.buildFuture()
                     }
                     .executes { context ->
@@ -88,8 +87,10 @@ object VelocityCommand {
                             val playerName = (context.getArgument<String>("player", String::class.java))
                             val player = getPlayer(playerName)
                             if (player != null) {
-                                if( PlayerDataManager.getPlayerData(player).isOP){
-                                    PlayerDataManager.getPlayerData(player).isOP = false
+                                val cachedPlayer = PlayerConfigCache.getOrCreatePlayerConfig((player)).get()
+                                if(cachedPlayer.isOperator) {
+                                    cachedPlayer.isOperator = false
+                                    PlayerDataManager.sendPlayerDataUpdate(cachedPlayer, "isOperator", false)
                                     LionChat.sendMessageOnChannel(
                                         "velocity",
                                         "<green>Removed Operator Status from $playerName".toComponent(),
@@ -114,13 +115,18 @@ object VelocityCommand {
             .then(BrigadierCommand.literalArgumentBuilder("whitelist")
                 .then(BrigadierCommand.literalArgumentBuilder("list")
                     .executes { context ->
+                        executeAsync({
                         var s = ""
-                        WhitelistManagement.players.forEach { player-> s += (PlayerDataManager.getPlayerData(player).name + ",")
+                        WhitelistManagement.players.forEach { player->
+                            val name = PlayerCache.getName(player)?:player.toString()
+                            s += ("$name, ")
                         }
                         LionChat.sendMessageOnChannel("velocity",
                             "Whitelist is currently ${if (WhitelistManagement.enabled) "<green>enabled" else "<red>disabled"}".toComponent(),
                             context.source)
                         LionChat.sendMessageOnChannel("velocity", s.toComponent(), context.source)
+
+                        })
                         Command.SINGLE_SUCCESS
                     }
                 )
@@ -293,9 +299,7 @@ object VelocityCommand {
     }
 
     fun executeAsync(sf: Function0<Unit>){
-        LionVelocity.instance.server.scheduler.buildTask(LionVelocity.instance, Runnable{
-            sf.invoke()
-        }).schedule()
+        LionVelocity.instance.async(sf)
     }
 
     fun getPlayer(name: String): UUID? {

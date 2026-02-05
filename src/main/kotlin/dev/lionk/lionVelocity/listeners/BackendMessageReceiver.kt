@@ -2,15 +2,14 @@ package dev.lionk.lionVelocity.listeners
 
 import com.velocitypowered.api.proxy.server.RegisteredServer
 import de.lioncraft.lionapi.messageHandling.lionchat.LionChat
+import de.lioncraft.lionapi.velocity.data.PlayerConfiguration
 import de.lioncraft.lionapi.velocity.data.TransferrableObject
 import dev.lionk.lionVelocity.LionVelocity
 import dev.lionk.lionVelocity.backend.BackendServerManager
 import dev.lionk.lionVelocity.backend.PingedServerStorage
-import dev.lionk.lionVelocity.data.Config
 import dev.lionk.lionVelocity.messageHandling.MessageSender
-import dev.lionk.lionVelocity.playerManagement.PlayerData
+import dev.lionk.lionVelocity.playerManagement.PlayerConfigCache
 import dev.lionk.lionVelocity.playerManagement.PlayerDataManager
-import dev.lionk.lionVelocity.playerManagement.queueReconnect
 import dev.lionk.lionVelocity.playerManagement.saveQueueReconnect
 import dev.lionk.lionVelocity.utils.toComponent
 import java.util.UUID
@@ -24,16 +23,12 @@ object BackendMessageReceiver {
             }
             "lionapi_request_player_data" -> {
                 val uuid = UUID.fromString(to.data.get("uuid"))
-                BackendServerManager.getConnection(server)!!.sendMessage(
-                    TransferrableObject("lionapi_playerdata")
-                        .addValue("uuid", uuid.toString())
-                        .addValue("data", PlayerDataManager.getPlayerData(uuid).toString()))
+                LionVelocity.instance.async {
+                    PlayerDataManager.sendPlayerData(server, PlayerConfigCache.getOrCreatePlayerConfig(uuid).get())
+                }
             }
             "lionapi_playerdata" -> {
-                PlayerDataManager.setPlayerData(
-                    UUID.fromString(
-                    to.data.getValue("uuid")),
-                    PlayerData.fromString(to.data.getValue("data")))
+                PlayerConfigCache.saveUpdateCachedPlayer(PlayerConfiguration.fromJson(to.data.getValue("data")))
             }
             "LionLobby_PlayerTransfer" -> {
                 val rs = LionVelocity.instance.server.getServer(to.getString("server"))

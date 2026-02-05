@@ -7,7 +7,7 @@ import de.lioncraft.lionapi.velocity.data.TransferrableObject
 import dev.lionk.lionVelocity.LionVelocity
 import dev.lionk.lionVelocity.backend.BackendServerManager
 import dev.lionk.lionVelocity.messageHandling.MessageSender
-import dev.lionk.lionVelocity.playerManagement.PlayerDataManager
+import dev.lionk.lionVelocity.playerManagement.PlayerConfigCache
 import net.kyori.adventure.text.minimessage.MiniMessage
 
 class ShutdownCommand : SimpleCommand {
@@ -35,7 +35,7 @@ class ShutdownCommand : SimpleCommand {
     override fun hasPermission(invocation: SimpleCommand.Invocation): Boolean {
         val source = invocation.source()
         if (source is Player){
-            return PlayerDataManager.getPlayerData(source.uniqueId).isOP
+            return PlayerConfigCache.getCachedPlayerConfig(source.uniqueId)?.isOperator ?: false
         }
 
         return source is ConsoleCommandSource

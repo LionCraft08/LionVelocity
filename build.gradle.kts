@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "dev.lionk"
-version = "1.1.5"
+version = "1.2.0"
 
 repositories {
     mavenCentral()
@@ -24,6 +24,9 @@ dependencies {
     compileOnly("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
     kapt("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("com.zaxxer:HikariCP:5.1.0")
+    implementation("com.mysql:mysql-connector-j:9.6.0")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.3.2")
 }
 
 tasks {

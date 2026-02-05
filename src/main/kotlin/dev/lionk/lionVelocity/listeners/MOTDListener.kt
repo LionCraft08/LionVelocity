@@ -18,7 +18,7 @@ class MOTDListener {
         )
     }
 
-    val motds = Config.getValue("motds").asJsonArray.map { MiniMessage.miniMessage().deserialize(it.asString) }
+    val motds = Config.getValue("motds")!!.asJsonArray.map { MiniMessage.miniMessage().deserialize(it.asString) }
 
     fun getRandomMotdComponent(): Component{
         return motds[(Math.random() * motds.size).toInt()]

@@ -5,11 +5,15 @@ import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.server.RegisteredServer
+import de.lioncraft.lionapi.velocity.data.PlayerConfiguration
 import de.lioncraft.lionapi.velocity.data.TransferrableObject
 import dev.lionk.lionVelocity.LionVelocity
+import dev.lionk.lionVelocity.backend.AbstractConnection
 import dev.lionk.lionVelocity.backend.BackendServerManager
 import dev.lionk.lionVelocity.playerManagement.mojang.PlayerCache
 import java.io.*
+import java.nio.file.Files
+import java.time.Duration
 import java.util.*
 
 object PlayerDataManager {
@@ -20,49 +24,51 @@ object PlayerDataManager {
     
     var playerData: HashMap<UUID, PlayerData>? = null
 
+    /**
+     * This function exists to convert old data into new, database-stored data.
+     */
     fun init() {
         try {
             val typeOfMap =
                 TypeToken.getParameterized(HashMap::class.java, UUID::class.java, PlayerData::class.java).type
             playerData = gson.fromJson<HashMap<UUID, PlayerData>?>(FileReader(file), typeOfMap)
-            if (playerData == null) playerData = HashMap()
-        } catch (e: FileNotFoundException) {
-            throw RuntimeException(e)
-        }
+            if (playerData != null){
+                playerData!!.forEach {
+                    LionVelocity.instance.server.scheduler.buildTask(LionVelocity.instance, Runnable {
+                        val pc = PlayerConfigCache.getOrCreatePlayerConfig(it.value.uuid).get()
+                        pc.isOperator = it.value.isOP
+                        pc.lastOnline = it.value.lastOnline
+                        pc.data = it.value.data
+                        pc.timestamp = System.currentTimeMillis()
+                    }).schedule()
+                }
+            }
+            save()
+        } catch (_: FileNotFoundException) {/*ignore when no old data exists*/}
+        catch (_:NoSuchElementException){}
 
     }
 
     fun save() {
-        try {
-            FileWriter(file).use { writer ->
-                // Convert the HashMap object to a JSON string and write to file
-                gson.toJson(playerData, writer)
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-    }
-    fun getPlayerData(uuid: UUID): PlayerData {
-        if (!playerData!!.containsKey(uuid)) playerData!![uuid] = PlayerData(uuid)
-        return playerData!![uuid]!!
-    }
+        LionVelocity.instance.server.scheduler.buildTask(LionVelocity.instance, Runnable {
+            Files.delete(file.toPath())
+        }).delay(Duration.ofSeconds(1)).schedule()
 
-    fun setPlayerData(uuid: UUID, playerData: PlayerData){
-        PlayerDataManager.playerData!![uuid] = playerData
-    }
-
-    fun sendPlayerData(uuid: UUID){
-        sendPlayerData(LionVelocity.instance.server.getPlayer(uuid).get())
     }
     fun sendPlayerData(player: Player){
-        sendPlayerData(player.currentServer.get().server, getPlayerData(player.uniqueId))
+        sendPlayerData(player, player.currentServer.get().server)
     }
-    fun sendPlayerData(registeredServer: RegisteredServer, playerData: PlayerData){
-        BackendServerManager.getConnection(registeredServer)?.sendMessage(TransferrableObject("lionapi_playerdata")
-            .addValue("data", playerData.toString()))
+    fun sendPlayerData(player: Player, registeredServer: RegisteredServer){
+        sendPlayerData(registeredServer, PlayerConfigCache.getOrCreatePlayerConfig(player.uniqueId).get())
     }
 
-    fun sendPlayerDataUpdate(playerData: PlayerData, key: String, value: Any){
+    fun sendPlayerData(registeredServer: RegisteredServer, playerData: PlayerConfiguration){
+        BackendServerManager.getConnection(registeredServer)?.sendMessage(TransferrableObject("lionapi_playerdata")
+            .addValue("data", playerData.toString())
+            .addValue("uuid", playerData.uuid.toString()))
+    }
+
+    fun sendPlayerDataUpdate(playerData: PlayerConfiguration, key: String, value: Any){
         BackendServerManager.getConnections().forEach {
             connection -> if (connection.isConnected()) connection.sendMessage(TransferrableObject("lionapi_playerdata_update")
             .addValue("key", key)

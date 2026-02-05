@@ -10,5 +10,13 @@
   "AliveChecks": 30000,
   "banMessage": "<red>Du bist auf diesem Servernetzwerk gebannt.",
   "whitelistMessage": "<gradient:#FF6600:#FFFF00>Dieses Servernetzwerk ist nicht öffentlich zugänglich.",
-  "allowUnknownServerConnections": true
+  "allowUnknownServerConnections": true,
+  "sql-configuration": {
+    "driver": "mariadb",
+    "host": "localhost",
+    "port": 3306,
+    "database": "velocity_playerdata",
+    "user": "velocity",
+    "password": "11223344"
+  }
 }
