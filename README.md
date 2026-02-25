@@ -35,6 +35,13 @@ You can send single players or whole servers to another backend server
 /players send <player/server> <server>
 ```
 
+## Auto Reconnect 
+If a Server is resetting, players will be automatically reconnected to this Server. <br>
+Requirements:<br>
+The player has this feature enabled in the Settings<br>
+The Server is connected to LionVelocity<br>
+The player is still in the lobby when the server is back online.
+
 # How to set up
 0. Set up your Velocity connections to the backend [Velocity Docs](https://docs.papermc.io/velocity/getting-started/), and make sure you have lionAPI installed on every backend server you want to connect.
 1. Identify the IP address and the port of the velocity server and the backend server you want to connect. If possible, take local addresses to reduce network traffic and ensure security. The port of the velocity can be configured in lionvelocity config.json. This means you don't need the port players are connected to, but rather another, custom configurable port. If you use a server hosting service, you need to ensure that the port is accessible by the backend.
