@@ -11,6 +11,7 @@ import com.velocitypowered.api.proxy.server.RegisteredServer
 import de.lioncraft.lionapi.messageHandling.lionchat.LionChat
 import dev.lionk.lionVelocity.LionVelocity
 import dev.lionk.lionVelocity.playerManagement.saveQueueReconnectSilent
+import dev.lionk.lionVelocity.utils.toComponent
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor
 import kotlin.jvm.optionals.getOrNull
@@ -46,8 +47,9 @@ object SendCommand {
 
                         LionChat.sendMessageOnChannel(
                             "velocity",
-                            Component.text("Sent $count players to ${server.serverInfo.name}",
-                                TextColor.color(0, 120, 255)),
+                            Component.translatable("command.players.send",
+                                count.toString().toComponent(),
+                                server.serverInfo.name.toComponent()),
                             context.source
                         )
 
@@ -95,10 +97,8 @@ object SendCommand {
                     } else
                         LionChat.sendMessageOnChannel(
                             "velocity",
-                            Component.text("This Server does not exist. ",
-                            TextColor.color(255, 60, 0)),
+                            Component.translatable("command.players.send.no_server"),
                             context.source
-
                         )
 
                     return@executes Command.SINGLE_SUCCESS

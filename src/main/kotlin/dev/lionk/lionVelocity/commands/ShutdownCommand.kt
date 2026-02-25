@@ -8,7 +8,9 @@ import dev.lionk.lionVelocity.LionVelocity
 import dev.lionk.lionVelocity.backend.BackendServerManager
 import dev.lionk.lionVelocity.messageHandling.MessageSender
 import dev.lionk.lionVelocity.playerManagement.PlayerConfigCache
+import dev.lionk.lionVelocity.utils.translate
 import net.kyori.adventure.text.minimessage.MiniMessage
+import java.util.concurrent.TimeUnit
 
 class ShutdownCommand : SimpleCommand {
     override fun execute(invocation: SimpleCommand.Invocation?) {
@@ -17,19 +19,22 @@ class ShutdownCommand : SimpleCommand {
             else "console"
         LionVelocity.instance.server.allPlayers.forEach { player ->
             MessageSender.sendKickMessage(player,
-                MiniMessage.miniMessage().deserialize(
-                    "<gradient:#FF8C00:#AA00AA>This Server Network is shutting down..." +
-                            "<reset><br><br><white>Please try again later"
-                )
+                "features.shutdown.kick".translate()
             )
         }
 
-        BackendServerManager.getConnections().forEach { connection ->
-            connection.sendMessage(TransferrableObject("lionapi_shutdown")
-                .addValue("source", source))
-        }
 
-        LionVelocity.instance.server.shutdown()
+        LionVelocity.instance.server.scheduler.buildTask(LionVelocity.instance, Runnable {
+            BackendServerManager.getConnections().forEach { connection ->
+                connection.sendMessage(TransferrableObject("lionapi_shutdown")
+                    .addValue("source", source)
+                )
+            }
+
+            LionVelocity.instance.server.shutdown()
+        }).delay(1, TimeUnit.SECONDS).schedule()
+
+
     }
 
     override fun hasPermission(invocation: SimpleCommand.Invocation): Boolean {

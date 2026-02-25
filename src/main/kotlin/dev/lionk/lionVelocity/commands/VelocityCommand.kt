@@ -12,12 +12,14 @@ import dev.lionk.lionVelocity.playerManagement.PlayerDataManager
 import dev.lionk.lionVelocity.playerManagement.WhitelistManagement
 import dev.lionk.lionVelocity.playerManagement.mojang.PlayerCache
 import dev.lionk.lionVelocity.utils.toComponent
+import dev.lionk.lionVelocity.utils.translate
 import net.kyori.adventure.audience.Audience
 import java.time.Duration
 import java.util.*
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import kotlin.jvm.optionals.getOrNull
+import kotlin.time.toKotlinDuration
 
 
 object VelocityCommand {
@@ -31,15 +33,17 @@ object VelocityCommand {
             }
             .then(BrigadierCommand.literalArgumentBuilder("op")
                 .executes { context ->
-                    var b = true
                     LionChat.sendMessageOnChannel("velocity", "<#00FFFF>List of OPs: ".toComponent(), context.source)
-                    PlayerDataManager.playerData!!.forEach { t, u ->
-                        if (u.isOP) {
-                            b = false
-                            LionChat.sendMessageOnChannel("velocity", PlayerCache.getName(u.uuid)?.toComponent()?:u.uuid.toString().toComponent(), context.source)
+                    executeAsync {
+                        var b = true
+                        PlayerConfigCache.getOPPlayers().get().forEach { u ->
+                            if(PlayerConfigCache.getCachedPlayerConfig(u)?.isOperator?:true){
+                                b = false
+                                LionChat.sendMessageOnChannel("velocity", PlayerCache.getActualName(u).get()?.getOrNull()?.toComponent()?:u.toString().toComponent(), context.source)
+                            }
                         }
+                        if (b) LionChat.sendMessageOnChannel("velocity", "-- Nothing here :/ ".toComponent(), context.source)
                     }
-                    if (b) LionChat.sendMessageOnChannel("velocity", "-- Nothing here :/ ".toComponent(), context.source)
                     return@executes Command.SINGLE_SUCCESS
                 }
                 .then(BrigadierCommand.requiredArgumentBuilder("player", StringArgumentType.word())
@@ -58,7 +62,7 @@ object VelocityCommand {
                                 if(cachedPlayer.isOperator) {
                                     LionChat.sendMessageOnChannel(
                                         "velocity",
-                                        "<red>$player is already a global operator".toComponent(),
+                                        "command.op.added.failed".translate(player),
                                         context.source
                                     )
                                 } else {
@@ -66,12 +70,12 @@ object VelocityCommand {
                                     PlayerDataManager.sendPlayerDataUpdate(cachedPlayer, "isOperator", true)
                                     LionChat.sendMessageOnChannel(
                                         "velocity",
-                                        "<green>Made $player a global Operator".toComponent(),
+                                        "command.op.added".translate(player),
                                         context.source
                                     )
                                 }
                             }
-                            else LionChat.sendMessageOnChannel("velocity", "<red>Couldn't find this Player".toComponent(), context.source)
+                            else LionChat.sendMessageOnChannel("velocity", "general.no_player".translate(), context.source)
                         })
                         return@executes Command.SINGLE_SUCCESS
                     }
@@ -93,18 +97,18 @@ object VelocityCommand {
                                     PlayerDataManager.sendPlayerDataUpdate(cachedPlayer, "isOperator", false)
                                     LionChat.sendMessageOnChannel(
                                         "velocity",
-                                        "<green>Removed Operator Status from $playerName".toComponent(),
+                                        "command.op.remove".translate(playerName),
                                         context.source
                                     )
                                 }else LionChat.sendMessageOnChannel(
                                     "velocity",
-                                    "<red>$playerName has no operator permissions".toComponent(),
+                                    "command.op.remove.failed".translate(playerName),
                                     context.source
                                 )
 
                             } else LionChat.sendMessageOnChannel(
                                 "velocity",
-                                "<red>Couldn't find this Player".toComponent(),
+                                "general.no_player".translate(),
                                 context.source
                             )
                         })
@@ -118,11 +122,14 @@ object VelocityCommand {
                         executeAsync({
                         var s = ""
                         WhitelistManagement.players.forEach { player->
-                            val name = PlayerCache.getName(player)?:player.toString()
+                            val name = LionVelocity.instance.server.getPlayer(player).getOrNull()?.username?:PlayerCache.getActualName(player).get().getOrNull()?:player.toString()
                             s += ("$name, ")
                         }
-                        LionChat.sendMessageOnChannel("velocity",
-                            "Whitelist is currently ${if (WhitelistManagement.enabled) "<green>enabled" else "<red>disabled"}".toComponent(),
+                        s = s.substring(0, s.length-2)
+                            LionChat.sendMessageOnChannel("velocity",
+                                (if (WhitelistManagement.enabled)
+                                    "command.whitelist.status.enabled"
+                                else "command.whitelist.status.disabled").translate(),
                             context.source)
                         LionChat.sendMessageOnChannel("velocity", s.toComponent(), context.source)
 
@@ -141,18 +148,18 @@ object VelocityCommand {
                                         WhitelistManagement.whitelist(player)
                                         LionChat.sendMessageOnChannel(
                                             "velocity",
-                                            "<green>Added $playerName to the whitelist".toComponent(),
+                                            "command.whitelist.added".translate(playerName),
                                             context.source
                                         )
                                     } else
                                         LionChat.sendMessageOnChannel(
                                             "velocity",
-                                            "<red>This Player is already whitelisted".toComponent(),
+                                            "command.whitelist.added.failed".translate(playerName),
                                             context.source
                                         )
                                 else LionChat.sendMessageOnChannel(
                                     "velocity",
-                                    "<red>Couldn't find that player".toComponent(),
+                                    "general.no_player".translate(),
                                     context.source
                                 )
                             }
@@ -171,18 +178,18 @@ object VelocityCommand {
                                         WhitelistManagement.removeFromWhitelist(player)
                                         LionChat.sendMessageOnChannel(
                                             "velocity",
-                                            "<green>Removed ${playerName} from the whitelist".toComponent(),
+                                            "command.whitelist.remove".translate(playerName),
                                             context.source
                                         )
                                     } else
                                         LionChat.sendMessageOnChannel(
                                             "velocity",
-                                            "<red>This Player is not whitelisted".toComponent(),
+                                            "command.whitelist.remove.failed".translate(playerName),
                                             context.source
                                         )
                                 else LionChat.sendMessageOnChannel(
                                     "velocity",
-                                    "<red>Couldn't find that player".toComponent(),
+                                    "general.no_player".translate(),
                                     context.source
                                 )
                             }
@@ -193,22 +200,22 @@ object VelocityCommand {
                 .then(BrigadierCommand.literalArgumentBuilder("enable")
                     .executes { context ->
                         if (WhitelistManagement.enabled) {
-                            LionChat.sendMessageOnChannel("velocity", "<red>The Whitelist is already active".toComponent(), context.source)
+                            LionChat.sendMessageOnChannel("velocity", "command.whitelist.enable.failed".translate(), context.source)
                             return@executes 0
                         }
                         WhitelistManagement.enabled = true
-                        LionChat.sendMessageOnChannel("velocity", "<green>Enabled the Whitelist successful".toComponent(), context.source)
+                        LionChat.sendMessageOnChannel("velocity", "command.whitelist.enable".translate(), context.source)
                         return@executes Command.SINGLE_SUCCESS
                     }
                 )
                 .then(BrigadierCommand.literalArgumentBuilder("disable")
                     .executes { context ->
                         if (!WhitelistManagement.enabled) {
-                            LionChat.sendMessageOnChannel("velocity", "<red>The Whitelist is already disabled".toComponent(), context.source)
+                            LionChat.sendMessageOnChannel("velocity", "command.whitelist.disable.failed".translate(), context.source)
                             return@executes 0
                         }
                         WhitelistManagement.enabled = false
-                        LionChat.sendMessageOnChannel("velocity", "<green>Disabled the Whitelist successful".toComponent(), context.source)
+                        LionChat.sendMessageOnChannel("velocity", "command.whitelist.disable".translate(), context.source)
                         return@executes Command.SINGLE_SUCCESS
                     }
                 )
@@ -226,16 +233,22 @@ object VelocityCommand {
                         executeAsync {
                             val playerName = (context.getArgument<String>("player", String::class.java))
                             val player = getPlayer(playerName)
-                            if (player != null && !WhitelistManagement.isBanned(player)) {
-                                WhitelistManagement.ban(player, null)
-                                LionChat.sendMessageOnChannel(
+                            if (player != null) {
+                                if (!WhitelistManagement.isBanned(player)) {
+                                    WhitelistManagement.ban(player, null)
+                                    LionChat.sendMessageOnChannel(
+                                        "velocity",
+                                        "command.ban.added".translate(playerName),
+                                        context.source
+                                    )
+                                } else LionChat.sendMessageOnChannel(
                                     "velocity",
-                                    "<red>Banned ${playerName}".toComponent(),
+                                    "command.ban.added.failed".translate(playerName),
                                     context.source
                                 )
                             } else LionChat.sendMessageOnChannel(
                                 "velocity",
-                                "<red>Couldn't find this Player".toComponent(),
+                                "general.no_player".translate(),
                                 context.source
                             )
                         }
@@ -247,16 +260,22 @@ object VelocityCommand {
                                 val playerName = (context.getArgument<String>("player", String::class.java))
                                 val player = getPlayer(playerName)
                                 val duration = convertToDuration(context.getArgument("duration", String::class.java))
-                                if (player != null && !WhitelistManagement.isBanned(player)) {
-                                    WhitelistManagement.ban(player, duration.toMillis())
-                                    LionChat.sendMessageOnChannel(
+                                if (player != null) {
+                                    if (!WhitelistManagement.isBanned(player)) {
+                                        WhitelistManagement.ban(player, duration.toMillis())
+                                        LionChat.sendMessageOnChannel(
+                                            "velocity",
+                                            "command.ban.added_duration".translate(playerName, duration.toKotlinDuration().toString()),
+                                            context.source
+                                        )
+                                    } else LionChat.sendMessageOnChannel(
                                         "velocity",
-                                        "<red>Banned ${playerName} for ${duration.toHours()} hours".toComponent(),
+                                        "command.ban.added.failed".translate(playerName),
                                         context.source
                                     )
                                 } else LionChat.sendMessageOnChannel(
                                     "velocity",
-                                    "<red>Couldn't find this Player".toComponent(),
+                                    "general.no_player".translate(),
                                     context.source
                                 )
                             }
@@ -277,16 +296,22 @@ object VelocityCommand {
                     executeAsync {
                         val playerName = (context.getArgument<String>("player", String::class.java))
                         val player = getPlayer(playerName)
-                        if (player != null && WhitelistManagement.isBanned(player)) {
-                            WhitelistManagement.pardon(player)
-                            LionChat.sendMessageOnChannel(
+                        if (player != null) {
+                            if (WhitelistManagement.isBanned(player)) {
+                                WhitelistManagement.pardon(player)
+                                LionChat.sendMessageOnChannel(
+                                    "velocity",
+                                    "command.ban.remove".translate(playerName),
+                                    context.source
+                                )
+                            } else LionChat.sendMessageOnChannel(
                                 "velocity",
-                                "<red>Unbanned ${playerName}".toComponent(),
+                                "command.ban.remove.failed".translate(playerName),
                                 context.source
                             )
                         } else LionChat.sendMessageOnChannel(
                             "velocity",
-                            "<red>Couldn't find this Player".toComponent(),
+                            "general.no_player".translate(),
                             context.source
                         )
                     }

@@ -55,6 +55,18 @@ object PlayerConfigCache {
     }
 
     /**
+     * Reads every UUID from the Database that has is_operator set to 1
+     */
+    fun getOPPlayers(): CompletableFuture<List<UUID>>{
+        val query = "SELECT uuid FROM player_configs WHERE is_operator = 1"
+        return CompletableFuture<List<UUID>>().completeAsync {
+            return@completeAsync SQLManager.instance.executeListQuery(query, { rs ->
+                UUID.fromString(rs.getString("uuid"))
+            })
+        }
+    }
+
+    /**
      * Reads a PlayerConfiguration from the database by UUID
      */
     fun loadPlayerConfig(uuid: UUID): CompletableFuture<PlayerConfiguration?> {

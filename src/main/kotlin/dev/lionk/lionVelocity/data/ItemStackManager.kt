@@ -1,13 +1,10 @@
 package dev.lionk.lionVelocity.data
 
 import dev.lionk.lionVelocity.LionVelocity
-import org.yaml.snakeyaml.Yaml
 import java.io.File
-import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 
 
 object ItemStackManager {

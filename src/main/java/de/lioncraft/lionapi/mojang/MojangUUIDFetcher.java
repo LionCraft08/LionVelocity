@@ -1,12 +1,14 @@
 package de.lioncraft.lionapi.mojang;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.velocitypowered.api.scheduler.Scheduler;
-import com.velocitypowered.api.plugin.PluginContainer;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -73,6 +75,43 @@ public class MojangUUIDFetcher {
 
             } catch (Exception e) {
                 System.err.println("Error fetching UUID for user " + username + ": " + e.getMessage());
+                return Optional.empty();
+            }
+        });
+    }
+    /**
+     * Fetches a Minecraft username from a UUID.
+     * @param uuid The player's UUID (can be with or without dashes).
+     * @return The current username, or null if not found/error.
+     */
+    public CompletableFuture<Optional<String>> getNameFromUUID(UUID uuid) {
+        return CompletableFuture.supplyAsync(() -> {
+
+            // 1. Remove dashes for Mojang's API requirements
+            String cleanUUID = uuid.toString().replace("-", "");
+            String url = "https://sessionserver.mojang.com/session/minecraft/profile/" + cleanUUID;
+
+            try {
+                HttpClient client = HttpClient.newHttpClient();
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+                // 204 No Content means the UUID doesn't exist
+                if (response.statusCode() == 204) {
+                    return Optional.empty();
+                }
+
+                // Parse the JSON response
+                Gson parser = new Gson();
+                JsonObject obj = parser.fromJson(response.body(), JsonObject.class);
+                return Optional.of(obj.get("name").getAsString());
+
+            } catch (Exception e) {
+                e.printStackTrace();
                 return Optional.empty();
             }
         });

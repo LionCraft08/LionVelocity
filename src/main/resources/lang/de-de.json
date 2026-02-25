@@ -1,0 +1,39 @@
+{
+  "general.ban": "<red>Du bist auf diesem Servernetzwerk gebannt",
+  "general.not_whitelisted": "<gradient:#FF6600:#FFFF00>Dieses Servernetzwerk ist nicht öffentlich zugänglich\n(not whitelisted)",
+
+  "general.no_server": "<#FF4400>Dieser Server existiert nicht",
+  "general.already_on_server": "<#FF4400>Du bist bereits mit diesem Server verbunden",
+  "general.no_player": "<#FF4400>Dieser Spieler existiert nicht",
+  "general.not_a_player": "<#FF4400>Dieser Befehl kann nur als Spieler ausgeführt werden",
+  "general.kick_suffix": "<reset><br><br><br><gradient:#FF00AA:#00AAFF>----------------------<br><reset><gradient:#FF00AA:#00AAFF>Powered by LionSystems",
+  "general.joined": "<#00FF00> + >> <#AA00FF><0> <#666666>(<1>)",
+
+  "features.shutdown.kick": "<gradient:#FF8C00:#AA00AA>Dieses Servernetzwerk fährt herunter...<reset><br><br><white>Bitte versuche es später erneut",
+  "features.msg.you": "Du",
+
+  "command.players.send": "<#00DDDD><0> Spieler wurden auf Server \"<1>\" geschickt",
+  "command.players.send.no_server": "<#FF4400>Dieser Server existiert nicht",
+
+  "command.whitelist.added": "<green><0> ist jetzt auf der Whitelist",
+  "command.whitelist.added.failed": "<red><0> ist bereits auf der Whitelist",
+  "command.whitelist.remove": "<green><0> wurde von der Whitelist entfernt",
+  "command.whitelist.remove.failed": "<red><0> ist nicht auf der Whitelist",
+  "command.whitelist.enable": "<green>Whitelist wurde erfolgreich aktiviert",
+  "command.whitelist.enable.failed": "<red>Die Whitelist ist bereits aktiviert",
+  "command.whitelist.disable": "<green>Die Whitelist wurde erfolgreich deaktiviert",
+  "command.whitelist.disable.failed": "<red>Die Whitelist ist bereits deaktiviert",
+  "command.whitelist.status.enabled": "Die Whitelist ist aktuell <green>aktiviert",
+  "command.whitelist.status.disabled": "Die Whitelist ist aktuell  <red>deaktiviert",
+
+  "command.ban.added": "<red><0><green> wurde gebannt",
+  "command.ban.added_duration": "<red><0> <green> wurde für <1> <green> gebannt",
+  "command.ban.added.failed": "<red><0> ist bereits gebannt",
+  "command.ban.remove": "<0> <green>wurde entbannt",
+  "command.ban.remove.failed": "<red><0> ist nicht gebannt",
+
+  "command.op.added": "<green><0> ist jetzt ein Global Operator",
+  "command.op.added.failed": "<red><0> ist bereits ein Global Operator",
+  "command.op.remove": "<green><0> ist jetzt kein Global Operator mehr",
+  "command.op.remove.failed": "<red><0> ist kein Global Operator"
+}

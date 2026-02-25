@@ -11,6 +11,9 @@
   "banMessage": "<red>Du bist auf diesem Servernetzwerk gebannt.",
   "whitelistMessage": "<gradient:#FF6600:#FFFF00>Dieses Servernetzwerk ist nicht öffentlich zugänglich.",
   "allowUnknownServerConnections": true,
+  "announce-join": true,
+  "announce-leave": true,
+  "language": "de-de",
   "sql-configuration": {
     "driver": "mariadb",
     "host": "localhost",

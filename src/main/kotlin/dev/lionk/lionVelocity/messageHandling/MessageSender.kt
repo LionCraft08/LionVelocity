@@ -8,10 +8,13 @@ import dev.lionk.lionVelocity.LionVelocity
 import dev.lionk.lionVelocity.utils.GUIElementRenderer.getFooter
 import dev.lionk.lionVelocity.utils.GUIElementRenderer.getHeader
 import dev.lionk.lionVelocity.utils.toComponent
+import dev.lionk.lionVelocity.utils.translate
+import dev.lionk.lionVelocity.utils.withSuffix
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.json.JSONComponentSerializer
 import java.util.*
+import kotlin.jvm.optionals.getOrNull
 
 object MessageSender {
     fun sendHeader(a: Audience) {
@@ -19,14 +22,11 @@ object MessageSender {
     }
 
     fun sendFooter(p: Player) {
-        p.sendPlayerListFooter(getFooter(p.getCurrentServer().get().getServer().getServerInfo().getName()))
+        p.sendPlayerListFooter(getFooter(p.getCurrentServer().getOrNull()?.getServer()?.getServerInfo()?.getName()))
     }
 
-    private val suffix = ("<reset><br><br><br><br><br>" +
-            "<gradient:#FF00AA:#00AAFF>______________________<br><reset>"+
-            "<gradient:#FF00AA:#00AAFF>Powered by LionSystems").toComponent()
     fun sendKickMessage(p: Player, msg: Component){
-        p.disconnect(msg.append(suffix))
+        p.disconnect(msg.withSuffix())
     }
 
     fun sendPlayerMSG(`object`: TransferrableObject){
@@ -42,7 +42,7 @@ object MessageSender {
         } else {
             LionChat.sendMSG(source, message, p.get())
             LionChat.sendMSG(
-                Component.text("Du -> ").append(Component.text(p.get().getUsername())),
+                "features.msg.you".translate().append(Component.text(" -> ").append(Component.text(p.get().getUsername()))),
                 message,
                 srcPlayer.get()
             )

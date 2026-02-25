@@ -78,11 +78,17 @@ class TCPConnection (
                 while (isRunning && (`in`!!.readLine().also { receivedLine = it }) != null) {
 
                     // Call the callback method on the main plugin class
-                    lastAliveCheck = System.currentTimeMillis()
-                    if (receivedLine!!.startsWith("setupconnection") && !isSetUp){
-                        val values = receivedLine.split(":")
-                        setServer(values[1], values[2].toInt())
-                    } else onMessageReceive(receivedLine)
+                    try {
+                        lastAliveCheck = System.currentTimeMillis()
+                        if (receivedLine!!.startsWith("setupconnection") && !isSetUp){
+                            val values = receivedLine.split(":")
+                            setServer(values[1], values[2].toInt())
+                        } else onMessageReceive(receivedLine)
+                    }catch (e: Exception){
+                        println(e.message)
+                        e.printStackTrace()
+                    }
+
                 }
             } catch (e: IOException) {
                 if (isRunning) { // Only log if not a planned shutdown
@@ -91,6 +97,8 @@ class TCPConnection (
                 }
             } finally {
                 shutdown()
+                LionVelocity.instance.logger
+                    .info("Disconnected Server {}", server)
             }
         })
     }

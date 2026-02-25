@@ -19,6 +19,9 @@ object Config {
     fun loadConfig(){
         val string = String(Files.readAllBytes(LionVelocity.instance.dataDirectory.resolve("config.json")))
         jo = gson.fromJson(string, JsonObject::class.java)
+        if(!jo.has("language")){
+            jo.addProperty("language", "de-de")
+        }
     }
 
     fun saveConfig(){

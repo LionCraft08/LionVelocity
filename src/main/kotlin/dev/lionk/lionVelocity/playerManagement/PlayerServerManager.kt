@@ -8,6 +8,7 @@ import dev.lionk.lionVelocity.backend.BackendServerManager
 import dev.lionk.lionVelocity.data.Config
 import dev.lionk.lionVelocity.listeners.PlayerPMHandler
 import dev.lionk.lionVelocity.utils.toComponent
+import dev.lionk.lionVelocity.utils.translate
 import kotlin.jvm.optionals.getOrNull
 
 object PlayerServerManager {
@@ -23,7 +24,7 @@ object PlayerServerManager {
         if(!saveQueueReconnectSilent(player, rs)){
             LionChat.sendMessageOnChannel(
                 "velocity",
-                "<#FF7700>You are already connected to this Server!".toComponent(),
+                "general.already_on_server".translate(),
                 player
             )
         }

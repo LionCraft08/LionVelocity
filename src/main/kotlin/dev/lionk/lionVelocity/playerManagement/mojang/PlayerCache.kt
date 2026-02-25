@@ -15,7 +15,7 @@ object PlayerCache {
         return cache.get(name)
     }
     fun hasUUIDCached(name: String): Boolean{
-        return cache.get(name) != null
+        return getUUIDOrNull(name) != null
     }
     fun putPlayerUUID(name: String, uuid: UUID){
         cache[name] = uuid
@@ -39,9 +39,25 @@ object PlayerCache {
         return null
     }
 
+    fun getActualName(uuid: UUID): CompletableFuture<Optional<String>>{
+        val name = getName(uuid)
+        if (name != null){
+            return CompletableFuture<Optional<String>>().completeAsync {
+                Thread.sleep(1)
+                return@completeAsync Optional.of<String>(name)
+            }
+        }
+        return makeReverseAPICall(uuid)
+    }
+
     private fun makeAPICall(name: String): CompletableFuture<Optional<UUID>>{
         val cf = fetcher.getUUID(name)
         cf.whenComplete { t, u -> if (t.isPresent) putPlayerUUID(name, t.get()) }
+        return cf
+    }
+    private fun makeReverseAPICall(uuid: UUID): CompletableFuture<Optional<String>>{
+        val cf = fetcher.getNameFromUUID(uuid)
+        cf.whenComplete { t, u -> if (t.isPresent) putPlayerUUID(t.get(), uuid) }
         return cf
     }
 

@@ -21,6 +21,7 @@ import dev.lionk.lionVelocity.data.ItemStackManager
 import dev.lionk.lionVelocity.listeners.MOTDListener
 import dev.lionk.lionVelocity.listeners.PlayerListeners
 import dev.lionk.lionVelocity.listeners.PlayerPMHandler
+import dev.lionk.lionVelocity.messageHandling.TranslationManager
 import dev.lionk.lionVelocity.playerManagement.PlayerConfigCache
 import dev.lionk.lionVelocity.playerManagement.PlayerDataManager
 import dev.lionk.lionVelocity.playerManagement.WhitelistManagement
@@ -42,7 +43,7 @@ import java.util.concurrent.TimeUnit
     id = "lionvelocity",
     name = "LionVelocity",
     version = BuildConstants.VERSION,
-    description = "Some additional displays that can be used by the Server",
+    description = "Adds some basic Features to Velocity and connects to LionAPI-Powered backend Servers",
     url = "lionk.dev",
     authors = ["LionCraft"]
 )
@@ -68,6 +69,8 @@ class LionVelocity @Inject constructor(val  server: ProxyServer, val logger: Log
             Paths.get(dataDirectory.toString(), "servericons/example-server.json")
         )
 
+        TranslationManager.save(dataDirectory.resolve("lang"))
+
         logger.info("Initialized LionVelocity Plugin ")
     }
 
@@ -76,6 +79,7 @@ class LionVelocity @Inject constructor(val  server: ProxyServer, val logger: Log
     fun onProxyInitialization(e: ProxyInitializeEvent) {
         registerLionChatChannels()
         Config.loadConfig()
+        TranslationManager.load(dataDirectory.resolve("lang").resolve("${Config.getValue("language")!!.asString}.json"))
 
         logger.info("Trying to connect to the Database")
         SQLManager.instance.connect()

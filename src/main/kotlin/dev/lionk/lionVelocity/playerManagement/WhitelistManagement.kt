@@ -5,6 +5,7 @@ import com.velocitypowered.api.util.UuidUtils
 import dev.lionk.lionVelocity.LionVelocity
 import dev.lionk.lionVelocity.messageHandling.MessageSender
 import dev.lionk.lionVelocity.utils.toComponent
+import dev.lionk.lionVelocity.utils.translate
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
@@ -54,7 +55,7 @@ object WhitelistManagement {
         banned[player] = time
         val playerObj = LionVelocity.instance.server.getPlayer(player)
         if (playerObj.isPresent)
-            MessageSender.sendKickMessage(playerObj.get(), "<red>You are banned from this Server!".toComponent())
+            MessageSender.sendKickMessage(playerObj.get(), "general.ban".translate())
     }
     fun pardon(player: UUID){
         banned.remove(player)

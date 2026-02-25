@@ -80,20 +80,39 @@ class SQLManager(
             }
         }
     }
+    /**
+     * Executes a query for Lists (SELECT) and returns a result via a callback
+     */
+    fun <T> executeListQuery(query: String, mapper: (ResultSet) -> T, vararg params: Any): List<T>? {
+        return dataSource?.connection?.use { conn ->
+            conn.prepareStatement(query).use { stmt ->
+                params.forEachIndexed { index, param ->
+                    stmt.setObject(index + 1, param)
+                }
+                stmt.executeQuery().use { rs ->
+                    var list = ArrayList<T>()
+                    while (rs.next()) list.add(mapper(rs))
+                    return list
+                }
+            }
+        }
+    }
 
     companion object {
         val config : JsonObject=
             if (Config.getValue("sql-configuration") != null){
                 Config.getValue("sql-configuration") as JsonObject
             } else {
-                JsonParser.parseString("{\n" +
-                    "    \"driver\": \"mariadb\",\n" +
-                    "    \"host\": \"localhost\",\n" +
-                    "    \"port\": 3306,\n" +
-                    "    \"database\": \"velocity_playerdata\",\n" +
-                    "    \"user\": \"velocity\",\n" +
-                    "    \"password\": \"11223344\"\n" +
-                    "  }") as JsonObject
+                val jo = JsonParser.parseString("{\n" +
+                        "    \"driver\": \"mariadb\",\n" +
+                        "    \"host\": \"localhost\",\n" +
+                        "    \"port\": 3306,\n" +
+                        "    \"database\": \"velocity_playerdata\",\n" +
+                        "    \"user\": \"velocity\",\n" +
+                        "    \"password\": \"11223344\"\n" +
+                        "  }") as JsonObject
+                Config.getJO().add("sql-configuration", jo)
+                jo
             }
 
         val instance = SQLManager(
